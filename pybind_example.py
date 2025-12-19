@@ -10,27 +10,32 @@ class Net(nn.Module):
   def forward(self, x):
     return torch.tensor([0.0, 1.0])
 
-n_agents = 256
+n_agents = 1
 env.init(n_agents)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Allocate once on CPU
 actions = torch.zeros(n_agents, dtype=torch.int32, device='cpu')
-observations = torch.zeros(n_agents, dtype=torch.float32, device='cpu')
+observations = torch.zeros((n_agents, 5), dtype=torch.float32, device='cpu')
 done_flags = torch.zeros(n_agents, dtype=torch.bool, device='cpu')
+rewards = torch.zeros(n_agents, dtype=torch.float32, device='cpu')
 
 net = Net()
 
 def compute():
-  for t in range(100):
+  for _ in range(100):
     # Example: batched PyTorch NN (on GPU)
     # Convert observations to GPU for NN
     states_gpu = observations.to(device)
     actions_gpu = net(states_gpu).argmax(dim=0)
     actions[:] = actions_gpu.to('cpu')  # copy once to CPU tensor
 
+    print(observations)
+
     # Step environment (zero-copy, multithreaded)
-    env.step(actions.numpy(), observations.numpy(), done_flags.numpy())
+    env.step(actions.numpy(), observations.numpy(), done_flags.numpy(), rewards.numpy())
+
+    print(observations)
 
     # Reset done agents
     done_indices = done_flags.nonzero(as_tuple=True)[0]

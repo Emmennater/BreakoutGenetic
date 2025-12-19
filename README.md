@@ -9,8 +9,9 @@ git clone https://github.com/pybind/pybind11.git
 ```
 mkdir build
 cd build
-cmake -G "MinGW Makefiles" ..
-mingw32-make
+cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release ..
+cd ..
+.\build.bat
 ```
 4. Rename the .pyd file to env.pyd and move it to the root directory.
 

@@ -1,13 +1,14 @@
 import numpy as np
 
-def init(n_agents: int) -> None:
+def init(n_agents: int, seed: int) -> None:
   """
   Initialize the environment for `n_agents` agents.
 
   :param n_agents: The number of agents in the environment.
+  :param seed: The seed for the random number generator.
   """
 
-def step(actions: np.ndarray, observation_out: np.ndarray, done_out: np.ndarray) -> None:
+def step(actions: np.ndarray, observation_out: np.ndarray, done_out: np.ndarray, reward_out: np.ndarray) -> None:
   """
   Perform a step in the environment.
 

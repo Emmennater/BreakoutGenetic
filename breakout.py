@@ -68,8 +68,7 @@ class Breakout(Environment):
     elif self.ball_y > 1 - BALL_RADIUS:
       self.ball_y = 1 - BALL_RADIUS
       self.ball_vy = -self.ball_vy
-      ball_to_paddle = abs(self.ball_x - self.paddle_x)
-      reward -= 1 * ball_to_paddle
+      reward -= 1
       self.is_done = True
 
     # Constrain ball horizontally
