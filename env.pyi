@@ -25,3 +25,8 @@ def reset() -> None:
   """
   Reset the environment.
   """
+
+def get_state_size() -> int:
+  """
+  Get the state size of the environment.
+  """

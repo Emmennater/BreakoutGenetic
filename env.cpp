@@ -6,9 +6,10 @@
 #include <omp.h>
 #include <random>
 #include <bitset>
+#include <iostream>
 
-#define BRICK_ROWS 8
-#define BRICK_COLUMNS 14
+#define BRICK_ROWS 7
+#define BRICK_COLUMNS 10
 #define PADDLE_SPEED 0.01f
 #define BALL_SPEED 0.01f
 #define HALF_PADDLE_WIDTH 0.075f
@@ -20,13 +21,17 @@
 
 namespace py = pybind11;
 
+int get_state_size() {
+  return 5 + BRICK_ROWS * BRICK_COLUMNS;
+}
+
 typedef struct State {
   float paddle_x = 0.5f;
   float ball_x = 0.5f;
   float ball_y = 0.5f;
   float ball_vx = 0.0f;
   float ball_vy = BALL_SPEED;
-  std::bitset<BRICK_ROWS * BRICK_COLUMNS> bricks;
+  std::bitset<BRICK_ROWS * BRICK_COLUMNS> bricks = std::bitset<BRICK_ROWS * BRICK_COLUMNS>().set();
 } State;
 
 inline int pos2idx(float y, float x) {
@@ -40,12 +45,12 @@ inline int pos2idx(float y, float x) {
   return row * BRICK_COLUMNS + col;
 }
 
-void state_step(State* state, int action, bool* done, float* reward, float rng) {
+void state_step(State* state, int action, bool* done, float* reward, float rng, int* removed) {
   *reward += 0.01f;
 
   // Movement
   state->paddle_x += static_cast<float>(action - 1) * PADDLE_SPEED;
-  state->paddle_x = std::max(0.0f, std::min(1.0f, state->paddle_x));
+  state->paddle_x = std::max(HALF_PADDLE_WIDTH, std::min(1.0f - HALF_PADDLE_WIDTH, state->paddle_x));
   state->ball_x += state->ball_vx;
   state->ball_y += state->ball_vy;
   
@@ -72,15 +77,15 @@ void state_step(State* state, int action, bool* done, float* reward, float rng) 
       state->ball_x + BALL_RADIUS > state->paddle_x - HALF_PADDLE_WIDTH &&
       state->ball_x - BALL_RADIUS < state->paddle_x + HALF_PADDLE_WIDTH &&
       state->ball_vy > 0.0f) {
-    *reward += 1.0f;
+    // *reward += 1.0f;
     state->ball_y = PADDLE_Y - HALF_PADDLE_HEIGHT;
     state->ball_vy = -state->ball_vy;
     float ball2paddle = state->ball_x - state->paddle_x;
     float perturb = (ball2paddle / HALF_PADDLE_WIDTH + rng * 0.2f - 0.1f) * BALL_SPEED * 0.5;
     state->ball_vx += perturb;
     float ball_speed = std::sqrt(state->ball_vx * state->ball_vx + state->ball_vy * state->ball_vy);
-    state->ball_vx /= ball_speed;
-    state->ball_vy /= ball_speed;
+    state->ball_vx *= BALL_SPEED / ball_speed;
+    state->ball_vy *= BALL_SPEED / ball_speed;
   }
 
   // Ball vs bricks
@@ -97,26 +102,32 @@ void state_step(State* state, int action, bool* done, float* reward, float rng) 
     state->bricks[brick_tr] = 0;
     state->ball_vy = -state->ball_vy;
     *reward += 1.0f;
+    *removed = brick_tr;
   } else if (brick_tl != -1 && state->bricks[brick_tl]) {
     state->bricks[brick_tl] = 0;
     state->ball_vy = -state->ball_vy;
     *reward += 1.0f;
+    *removed = brick_tl;
   } else if (brick_br != -1 && state->bricks[brick_br]) {
     state->bricks[brick_br] = 0;
     state->ball_vy = -state->ball_vy;
     *reward += 1.0f;
+    *removed = brick_br;
   } else if (brick_bl != -1 && state->bricks[brick_bl]) {
     state->bricks[brick_bl] = 0;
     state->ball_vy = -state->ball_vy;
     *reward += 1.0f;
+    *removed = brick_bl;
   }
 }
 
+bool g_is_reset = false;
 int g_n_agents;
 std::vector<State> g_state;
 std::vector<uint8_t> g_done;
 
 void reset() {
+  g_is_reset = true;
   for (int i = 0; i < g_n_agents; i++) {
     g_state[i] = State();
     g_done[i] = false;
@@ -124,11 +135,11 @@ void reset() {
 }
 
 void init(int n_agents, int seed) {
+  if (!g_is_reset) throw std::runtime_error("Call reset() before init()");
   g_n_agents = n_agents;
   if (seed != -1) srand(seed);
   g_state.resize(n_agents);
   g_done.resize(n_agents);
-  reset();
 }
 
 void step(
@@ -151,12 +162,15 @@ void step(
   #pragma omp parallel for
   for (int i = 0; i < g_n_agents; i++) {
     if (!g_done[i]) {
-      state_step(&g_state[i], actions.at(i), &done_ptr[i], &reward_ptr[i], rng);
+      int removed = -1;
+      state_step(&g_state[i], actions.at(i), &done_ptr[i], &reward_ptr[i], rng, &removed);
       obs_buf(i, 0) = g_state[i].paddle_x;
       obs_buf(i, 1) = g_state[i].ball_x;
       obs_buf(i, 2) = g_state[i].ball_y;
       obs_buf(i, 3) = g_state[i].ball_vx;
       obs_buf(i, 4) = g_state[i].ball_vy;
+      if (removed != -1) obs_buf(i, removed + 5) = 0.0f;
+      g_done[i] = done_ptr[i];
     }
   }
 }
@@ -166,4 +180,5 @@ PYBIND11_MODULE(env, m) {
   m.def("init", &init);
   m.def("step", &step);
   m.def("reset", &reset);
+  m.def("get_state_size", &get_state_size);
 }
