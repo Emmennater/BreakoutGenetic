@@ -1,3 +1,7 @@
+"""
+A simple breakout environment.
+"""
+
 import numpy as np
 
 def init(n_agents: int, seed: int) -> None:
