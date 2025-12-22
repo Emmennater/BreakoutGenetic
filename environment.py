@@ -2,8 +2,6 @@ import numpy as np
 import env
 
 class Environment:
-  STATE_SIZE = 1
-
   def __init__(self, max_agents: int, seed: int = -1, device: str = 'cpu'):
     """
     Initialize the environment.
@@ -16,6 +14,7 @@ class Environment:
     self.n_agents = max_agents
     self.device = device
     self.state_size = env.get_state_size()
+    self.frame_skip = 1
     self.reset()
     env.init(self.n_agents, seed)
 
@@ -28,13 +27,18 @@ class Environment:
     self.rewards = np.zeros(self.n_agents, dtype=np.float32)
     env.reset(self.states)
 
-  def step(self, actions: np.ndarray):
+  def step(self, actions: np.ndarray) -> np.ndarray:
     """
     Perform a step in the environment.
 
     :param actions: A numpy array of actions for each agent with shape (n_agents,)
+    :return: A numpy array of rewards for each agent with shape (n_agents,)
     """
-    env.step(actions, self.states, self.done, self.rewards)
+    total_reward = np.zeros(shape=(self.n_agents,), dtype=np.float32)
+    for _ in range(self.frame_skip):
+      env.step(actions, self.states, self.done, self.rewards)
+      total_reward += self.rewards
+    return total_reward.copy()
 
   def get_states(self) -> np.ndarray:
     """
