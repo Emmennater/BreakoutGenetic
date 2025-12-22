@@ -91,6 +91,9 @@ def test():
     env.step(np.array([action]))
     render(env.get_states()[0], screen, screen_width, screen_height)
 
+    if env.get_done()[0]:
+      env.reset()
+
     pygame.display.flip()
 
   pygame.quit()

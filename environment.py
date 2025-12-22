@@ -24,10 +24,9 @@ class Environment:
     Reset the environment.
     """
     self.states = np.zeros((self.n_agents, self.state_size), dtype=np.float32)
-    self.states[:, 5:] = 1
-    self.done = np.zeros(self.n_agents, dtype=np.float32)
+    self.done = np.zeros(self.n_agents, dtype=np.bool)
     self.rewards = np.zeros(self.n_agents, dtype=np.float32)
-    env.reset()
+    env.reset(self.states)
 
   def step(self, actions: np.ndarray):
     """

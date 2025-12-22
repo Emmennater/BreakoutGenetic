@@ -126,11 +126,20 @@ int g_n_agents;
 std::vector<State> g_state;
 std::vector<uint8_t> g_done;
 
-void reset() {
+void reset(py::array_t<float> state_out) {
+  auto obs_buf = state_out.mutable_unchecked<2>();
   g_is_reset = true;
   for (int i = 0; i < g_n_agents; i++) {
     g_state[i] = State();
     g_done[i] = false;
+    obs_buf(i, 0) = g_state[i].paddle_x;
+    obs_buf(i, 1) = g_state[i].ball_x;
+    obs_buf(i, 2) = g_state[i].ball_y;
+    obs_buf(i, 3) = g_state[i].ball_vx;
+    obs_buf(i, 4) = g_state[i].ball_vy;
+    for (int j = 0; j < BRICK_ROWS * BRICK_COLUMNS; j++) {
+      obs_buf(i, 5 + j) = g_state[i].bricks[j];
+    }
   }
 }
 
@@ -144,7 +153,7 @@ void init(int n_agents, int seed) {
 
 void step(
   py::array_t<int> actions,
-  py::array_t<float> observation_out,
+  py::array_t<float> state_out,
   py::array_t<bool> done_out,
   py::array_t<float> reward_out
 ) {
@@ -155,7 +164,7 @@ void step(
 
   auto done_ptr = done_out.mutable_data();
   auto reward_ptr = reward_out.mutable_data();
-  auto obs_buf = observation_out.mutable_unchecked<2>();
+  auto obs_buf = state_out.mutable_unchecked<2>();
 
   float rng = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
