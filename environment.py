@@ -2,17 +2,15 @@ import numpy as np
 import env
 
 class Environment:
-  def __init__(self, max_agents: int, seed: int = -1, device: str = 'cpu'):
+  def __init__(self, max_agents: int, seed: int = -1):
     """
     Initialize the environment.
 
     :param max_agents: The maximum number of agents in the environment.
     :param seed: The seed for the random number generator.
-    :param device: The device to use for the environment.
     """
     self.max_agents = max_agents
     self.n_agents = max_agents
-    self.device = device
     self.state_size = env.get_state_size()
     self.frame_skip = 1
     self.reset()
