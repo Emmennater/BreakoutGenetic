@@ -8,7 +8,9 @@
       "cStandard": "c17",
       "cppStandard": "c++20",
       "includePath": [
+        "C:/Program Files/WindowsApps/PythonSoftwareFoundation.Python.3.12_3.12.2800.0_x64__qbz5n2kfra8p0/include",
         "C:/Libraries/eigen-5.0.0",
+        "C:/Libraries/pybind11-3.0.1/include",
         "${workspaceFolder}/include"
       ],
       "defines": [

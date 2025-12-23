@@ -1,50 +1,112 @@
+import link
 import numpy as np
-
-I = 5
-H = 8
-O = 3
-
-def load_genome(filename: str, I: int, H: int, O: int):
-  """
-  Load a genome (policy network) from a binary file.
-  """
-  genome_size = H * I + H + H * H + H + O * H + O
-  genome = np.fromfile(filename, dtype=np.float32, count=genome_size)
-  
-  if genome.size != genome_size:
-    raise ValueError(f"Expected genome of size {genome_size}, but got {genome.size}")
-  
-  return genome
-
-def forward(genome: np.ndarray, state: np.ndarray, I: int, H: int, O: int):
-  """
-  Compute the forward pass of the policy network.
-  """
-  # Flatten the state just in case
-  x = np.asarray(state, dtype=np.float32).reshape(I)
-
-  # Extract weights and biases from genome
-  p = 0
-  W1 = genome[p : p + H * I].reshape(H, I); p += H * I
-  b1 = genome[p : p + H].reshape(H,); p += H
-  W2 = genome[p : p + H * H].reshape(H, H); p += H * H
-  b2 = genome[p : p + H].reshape(H,); p += H
-  W3 = genome[p : p + O * H].reshape(O, H); p += O * H
-  b3 = genome[p : p + O].reshape(O,)
-
-  # Forward pass
-  h1 = np.tanh(W1 @ x + b1)
-  h2 = np.tanh(W2 @ h1 + b2)
-  y = W3 @ h2 + b3
-
-  # Return index of the largest output (like C++ maxCoeff)
-  return int(np.argmax(y))
+import pygame
 
 def get_state():
-  return np.array([0.5, 0.5, 0.5, 0, 0.01])
+  state = np.zeros((5 + 7 * 10), dtype=np.float32)
+  state[0] = 0.5
+  state[1] = 0.5
+  state[2] = 0.5
+  state[3] = 0.0
+  state[4] = 0.01
+  state[5:] = 1
+  return state
+
+def render(state: np.ndarray, screen: pygame.Surface, screen_width, screen_height):
+  BRICK_ROWS = 7
+  BRICK_COLUMNS = 10
+  HALF_PADDLE_WIDTH = 0.075
+  HALF_PADDLE_HEIGHT = 0.01
+  PADDLE_Y = 0.95
+  BALL_RADIUS = 0.015
+  BRICK_TOP = 0.1
+  BRICK_BOTTOM = 0.3
+
+  paddle_x = state[0].item()
+  ball_x = state[1].item()
+  ball_y = state[2].item()
+  bricks = state[5:]
+
+  brick_width = screen_width // BRICK_COLUMNS
+  brick_height = screen_height * (BRICK_BOTTOM - BRICK_TOP) // BRICK_ROWS
+
+  PADDLE_COLOR = (107, 115, 117)
+  BALL_COLOR = (250, 255, 255)
+  RAINBOW = [
+    (255, 85, 85),      # red
+    (255, 120, 70),    # orange
+    (255, 190, 20),    # yellow
+    (90, 230, 90),      # green
+    (70, 80, 255),    # blue
+    (130, 80, 255),    # purple
+    (0, 240, 240)   #  light blue
+  ]
+
+  screen.fill((12, 23, 31))
+
+  # Bricks
+  for i in range(0, BRICK_COLUMNS * BRICK_ROWS):
+    if bricks[i].item() == 0: continue
+    col = i % BRICK_COLUMNS
+    row = i // BRICK_COLUMNS
+    left = col * brick_width + 1
+    top = BRICK_TOP * screen_height + row * brick_height + 1
+    width = brick_width - 2
+    height = brick_height - 2
+    rect = pygame.Rect(left, top, width, height)
+    pygame.draw.rect(screen, RAINBOW[row], rect)
+
+  # Paddle
+  paddle_width = HALF_PADDLE_WIDTH * screen_width * 2
+  paddle_height = HALF_PADDLE_HEIGHT * screen_height * 2
+  paddle_left = paddle_x * screen_width - paddle_width / 2
+  paddle_top = PADDLE_Y * screen_height - paddle_height / 2
+  paddle = pygame.Rect(paddle_left, paddle_top, paddle_width, paddle_height)
+  pygame.draw.rect(screen, PADDLE_COLOR, paddle)
+
+  # Ball
+  ball_x = ball_x * screen_width
+  ball_y = ball_y * screen_height
+  ball_r = BALL_RADIUS * screen_height
+  pygame.draw.circle(screen, BALL_COLOR, (ball_x, ball_y), ball_r)
+
+def test():
+  state = get_state()
+  
+  link.load("genomes/0.net")
+  
+  pygame.init()
+  screen_width, screen_height = 600, 700
+  screen = pygame.display.set_mode((screen_width, screen_height))
+  clock = pygame.time.Clock()
+  running = True
+  keys_down = {}
+
+  while running:
+    clock.tick(60)
+
+    for event in pygame.event.get():
+      if event.type == pygame.QUIT:
+        running = False
+      if event.type == pygame.KEYDOWN:
+        keys_down[event.key] = True
+      if event.type == pygame.KEYUP:
+        keys_down[event.key] = False
+
+    # action = 1
+    # if pygame.K_LEFT in keys_down and keys_down[pygame.K_LEFT]:
+    #   action -= 1
+    # if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
+    #   action += 1
+    # done = link.step(state, action)
+
+    done = link.stepGenome(state)
+    render(state, screen, screen_width, screen_height)
+    if done: state = get_state()
+    
+    pygame.display.flip()
+
+  pygame.quit()
 
 if __name__ == "__main__":
-  state = get_state()
-  genome = load_genome("genomes/0.net", I, H, O)
-  action = forward(genome, state, I, H, O)
-  print(f"Action: {action}")
+  test()

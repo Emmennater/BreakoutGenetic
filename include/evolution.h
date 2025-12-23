@@ -9,7 +9,7 @@ class Evolution {
   const int top_percent = 0.5;
   const int log_every = 10;
   const int save_every = 10;
-  const int max_steps = 50000;
+  const int max_steps = 5000;
   const int pop_size;
   const int training_steps;
   int training_step = 0;

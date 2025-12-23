@@ -1,5 +1,6 @@
 #include <net.h>
 #include <fstream>
+#include <iostream>
 
 Genome::Genome() : data(H * I + H + H * H + H + O * H + O) {}
 
@@ -67,9 +68,11 @@ int forward(const Genome& g, const State& s) {
   VecH h2 = W2 * h1 + b2;
   h2 = h2.array().tanh();
   Eigen::Matrix<float, O, 1> y = W3 * h2 + b3;
+  Eigen::Index maxIndex;
+  y.maxCoeff(&maxIndex);
 
   // Pick largest output
-  return y.array().maxCoeff();
+  return maxIndex;
 }
 
 void saveGenome(const Genome& g, const std::string& filename) {
