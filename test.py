@@ -1,6 +1,16 @@
+import link
 import numpy as np
 import pygame
-from environment import Environment
+
+def get_state():
+  state = np.zeros((5 + 7 * 10), dtype=np.float32)
+  state[0] = 0.5
+  state[1] = 0.5
+  state[2] = 0.5
+  state[3] = 0.0
+  state[4] = 0.01
+  state[5:] = 1
+  return state
 
 def render(state: np.ndarray, screen: pygame.Surface, screen_width, screen_height):
   BRICK_ROWS = 7
@@ -61,8 +71,9 @@ def render(state: np.ndarray, screen: pygame.Surface, screen_width, screen_heigh
   pygame.draw.circle(screen, BALL_COLOR, (ball_x, ball_y), ball_r)
 
 def test():
-  env = Environment(1)
-  env.reset()
+  state = get_state()
+  
+  link.load("genomes/0.net")
   
   pygame.init()
   screen_width, screen_height = 600, 700
@@ -82,21 +93,20 @@ def test():
       if event.type == pygame.KEYUP:
         keys_down[event.key] = False
 
-    action = 1
-    if pygame.K_LEFT in keys_down and keys_down[pygame.K_LEFT]:
-      action -= 1
-    if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
-      action += 1
+    # action = 1
+    # if pygame.K_LEFT in keys_down and keys_down[pygame.K_LEFT]:
+    #   action -= 1
+    # if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
+    #   action += 1
+    # done = link.step(state, action)
+    done = link.stepGenome(state)
 
-    env.step(np.array([action]))
-    render(env.get_states()[0], screen, screen_width, screen_height)
-
-    if env.get_done()[0]:
-      env.reset()
-
+    render(state, screen, screen_width, screen_height)
+    if done: state = get_state()
+    
     pygame.display.flip()
 
   pygame.quit()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
   test()

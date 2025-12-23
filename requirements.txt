@@ -1,5 +1,1 @@
 numpy
-pygame
-pyparsing
-setuptools
-torch

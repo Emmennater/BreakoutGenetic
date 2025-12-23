@@ -1,6 +1,4 @@
 __pycache__/
-build/
-pybind11/
-.vscode/
-genomes/
 *.exe
+genomes/
+.venv
