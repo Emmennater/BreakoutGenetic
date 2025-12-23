@@ -1,0 +1,19 @@
+{
+  "version": 4,
+  "configurations": [
+    {
+      "name": "MinGW",
+      "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+      "intelliSenseMode": "windows-gcc-x64",
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "includePath": [
+        "C:/Libraries/eigen-5.0.0",
+        "${workspaceFolder}/include"
+      ],
+      "defines": [
+        "_OPENMP"
+      ]
+    }
+  ]
+}

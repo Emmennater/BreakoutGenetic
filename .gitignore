@@ -1,5 +1,2 @@
 __pycache__/
-build/
-pybind11/
-eigen/
-.vscode/
+*.exe
