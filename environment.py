@@ -12,6 +12,7 @@ class Environment:
     self.max_agents = max_agents
     self.n_agents = max_agents
     self.state_size = env.get_state_size()
+    self.action_size = env.get_action_size()
     self.frame_skip = 1
     self.reset()
     env.init(self.n_agents, seed)
@@ -32,11 +33,10 @@ class Environment:
     :param actions: A numpy array of actions for each agent with shape (n_agents,)
     :return: A numpy array of rewards for each agent with shape (n_agents,)
     """
-    total_reward = np.zeros(shape=(self.n_agents,), dtype=np.float32)
+    self.rewards.fill(0.0)
     for _ in range(self.frame_skip):
       env.step(actions, self.states, self.done, self.rewards)
-      total_reward += self.rewards
-    return total_reward.copy()
+    return self.rewards.copy()
 
   def get_states(self) -> np.ndarray:
     """
@@ -61,12 +61,6 @@ class Environment:
     :return: A numpy array of rewards with shape (n_agents,)
     """
     return self.rewards
-
-  def get_state_size(self) -> int:
-    """
-    Get the state size of the environment.
-    """
-    return self.state_size
 
   def get_n_agents(self) -> int:
     """

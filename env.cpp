@@ -25,6 +25,10 @@ int get_state_size() {
   return 5 + BRICK_ROWS * BRICK_COLUMNS;
 }
 
+int get_action_size() {
+  return 3;
+}
+
 typedef struct State {
   float paddle_x = 0.5f;
   float ball_x = 0.5f;
@@ -77,7 +81,7 @@ void state_step(State* state, int action, bool* done, float* reward, float rng, 
       state->ball_x + BALL_RADIUS > state->paddle_x - HALF_PADDLE_WIDTH &&
       state->ball_x - BALL_RADIUS < state->paddle_x + HALF_PADDLE_WIDTH &&
       state->ball_vy > 0.0f) {
-    // *reward += 1.0f;
+    *reward += 1.0f;
     state->ball_y = PADDLE_Y - HALF_PADDLE_HEIGHT;
     state->ball_vy = -state->ball_vy;
     float ball2paddle = state->ball_x - state->paddle_x;
@@ -190,4 +194,5 @@ PYBIND11_MODULE(env, m) {
   m.def("step", &step);
   m.def("reset", &reset);
   m.def("get_state_size", &get_state_size);
+  m.def("get_action_size", &get_action_size);
 }

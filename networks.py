@@ -4,12 +4,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Network(nn.Module):
-  def __init__(self, hidden_size: int, action_size: int):
+  def __init__(self, input_size: int, action_size: int):
     super().__init__()
-    self.policy_fc1 = nn.Linear(hidden_size, 8)
+    self.policy_fc1 = nn.Linear(input_size, 8)
     self.policy_fc2 = nn.Linear(8, action_size)
-    self.args = {'hidden_size': hidden_size, 'action_size': action_size}
+    self.args = {'input_size': input_size, 'action_size': action_size}
   
+  @torch.no_grad
   def forward(self, state: torch.Tensor) -> torch.Tensor:
     p = self.policy_fc1(state)
     p = F.elu(p)
@@ -61,10 +62,10 @@ class Network(nn.Module):
   def load(path: str, default_args={}):
     try:
       checkpoint = torch.load(path)
-      model = Network(checkpoint['args']['hidden_size'], checkpoint['args']['action_size'])
+      model = Network(checkpoint['args']['input_size'], checkpoint['args']['action_size'])
       model.load_state_dict(checkpoint['state_dict'])
       return model
     except Exception as e:
       print(f"Error loading model: {e}")
       print("Making new model...")
-      return Network(default_args['hidden_size'], default_args['action_size'])
+      return Network(default_args['input_size'], default_args['action_size'])

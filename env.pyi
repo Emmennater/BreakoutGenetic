@@ -32,3 +32,8 @@ def get_state_size() -> int:
   """
   Get the state size of the environment.
   """
+
+def get_action_size() -> int:
+  """
+  Get the action size of the environment.
+  """
