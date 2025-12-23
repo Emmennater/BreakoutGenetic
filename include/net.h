@@ -4,7 +4,7 @@
 #include <env.h>
 
 constexpr int I = STATE_SIZE;
-constexpr int H = 8;
+constexpr int H = 16;
 constexpr int O = ACTION_SIZE;
 
 struct Genome {
@@ -16,7 +16,7 @@ struct Genome {
 
 int forward(const Genome& g, const State& s);
 
-void mutate(Genome& g, mt19937& rng, float rate = 0.04, float delta = 0.04);
+void mutate(Genome& g, mt19937& rng, float rate = 0.05, float delta = 0.05);
 
 void crossover(Genome& g1, Genome& g2, mt19937& rng, float nc = 2.0);
 

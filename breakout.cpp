@@ -5,12 +5,12 @@
 #include <omp.h>
 #include <evolution.h>
 using namespace std;
-#define N 1000
+#define N 100
 
 int main() {
   omp_set_num_threads(4);
 
-  Evolution evolution(N, 100);
+  Evolution evolution(N, 100000);
   evolution.train();
 
   return 0;

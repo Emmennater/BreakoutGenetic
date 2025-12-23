@@ -23,32 +23,12 @@ int stepGenome(py::array_t<float> state) {
   auto state_mut = state.mutable_data();
   float reward = 0;
   int done = 0;
-  
   State s;
   
-  s.paddle_x = state_mut[0];
-  s.ball_x = state_mut[1];
-  s.ball_y = state_mut[2];
-  s.ball_vx = state_mut[3];
-  s.ball_vy = state_mut[4];
-  
-  for (int i = 0; i < BRICK_ROWS * BRICK_COLUMNS; i++) {
-    s.bricks[i] = state_mut[5 + i];
-  }
-
+  memcpy(&s, state_mut, sizeof(State));
   int action = forward(g, s);
-
   envStep(&s, &action, &reward, &done, random);
-
-  state_mut[0] = s.paddle_x;
-  state_mut[1] = s.ball_x;
-  state_mut[2] = s.ball_y;
-  state_mut[3] = s.ball_vx;
-  state_mut[4] = s.ball_vy;
-  
-  for (int i = 0; i < BRICK_ROWS * BRICK_COLUMNS; i++) {
-    state_mut[5 + i] = s.bricks[i];
-  }
+  memcpy(state_mut, &s, sizeof(State));
 
   return done;
 }
@@ -61,30 +41,11 @@ int step(py::array_t<float> state, int action) {
   auto state_mut = state.mutable_data();
   float reward = 0;
   int done = 0;
-  
   State s;
   
-  s.paddle_x = state_mut[0];
-  s.ball_x = state_mut[1];
-  s.ball_y = state_mut[2];
-  s.ball_vx = state_mut[3];
-  s.ball_vy = state_mut[4];
-  
-  for (int i = 0; i < BRICK_ROWS * BRICK_COLUMNS; i++) {
-    s.bricks[i] = state_mut[5 + i];
-  }
-
+  memcpy(&s, state_mut, sizeof(State));
   envStep(&s, &action, &reward, &done, random);
-
-  state_mut[0] = s.paddle_x;
-  state_mut[1] = s.ball_x;
-  state_mut[2] = s.ball_y;
-  state_mut[3] = s.ball_vx;
-  state_mut[4] = s.ball_vy;
-  
-  for (int i = 0; i < BRICK_ROWS * BRICK_COLUMNS; i++) {
-    state_mut[5 + i] = s.bricks[i];
-  }
+  memcpy(state_mut, &s, sizeof(State));
 
   return done;
 }

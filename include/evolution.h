@@ -6,9 +6,9 @@ class Evolution {
   
   const int init_lives = 3;
   const int max_lives = 5;
-  const int top_percent = 0.5;
-  const int log_every = 10;
-  const int save_every = 10;
+  const int top_percent = 0.3;
+  const int log_every = 1;
+  const int save_every = 100;
   const int max_steps = 5000;
   const int pop_size;
   const int training_steps;

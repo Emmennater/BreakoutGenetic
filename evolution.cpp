@@ -33,14 +33,20 @@ void Evolution::resetGen() {
 }
 
 void Evolution::step() {
-  // Same random sequence for all fitness evaluations
-  float random = dist(rng);
+  constexpr int step_size = 100;
+  static float randoms[step_size];
+
+  for (int i = 0; i < step_size; i++) {
+    randoms[i] = dist(rng);
+  }
 
   #pragma omp parallel for
   for (int i = 0; i < pop_size; i++) {
-    if (!dones[i]) {
-      int action = forward(genomes[i], states[i]);
-      envStep(&states[i], &action, &fitness[i], &dones[i], random);
+    for (int j = 0; j < step_size; j++) {
+      if (!dones[i]) {
+        int action = forward(genomes[i], states[i]);
+        envStep(&states[i], &action, &fitness[i], &dones[i], randoms[j]);
+      }
     }
   }
 }
@@ -55,7 +61,8 @@ bool Evolution::genDone() {
 }
 
 void Evolution::evaluate() {
-  for (int i = 0; i < max_steps; i++) {
+  constexpr int step_size = 100;
+  for (int i = 0; i < max_steps / step_size; i++) {
     if (genDone()) break;
     step();
   }
@@ -66,16 +73,17 @@ void Evolution::evaluate() {
 int Evolution::chooseElite() {
   // Sample with probability proportional to fitness
   // Each fitness is already greater than 0.
+  const float pwr = 1.0f;
   float total = 0;
   
   for (int i = 0; i < pop_size; i++) {
-    total += fitness[i];
+    total += pow(fitness[i], pwr);
   }
   
   float r = dist(rng) * total;
   
   for (int i = 0; i < pop_size; i++) {
-    r -= fitness[i];
+    r -= pow(fitness[i], pwr);
     if (r <= 0) return i;
   }
   

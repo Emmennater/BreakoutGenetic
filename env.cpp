@@ -15,7 +15,7 @@ int pos2idx(float y, float x) {
 }
 
 void envStep(State* state, int* action, float* reward, int* done, float random) {
-  *reward += 0.01f;
+  // *reward += 0.01f;
 
   // Movement
   state->paddle_x += static_cast<float>(*action - 1) * PADDLE_SPEED;
@@ -46,7 +46,6 @@ void envStep(State* state, int* action, float* reward, int* done, float random) 
       state->ball_x + BALL_RADIUS > state->paddle_x - HALF_PADDLE_WIDTH &&
       state->ball_x - BALL_RADIUS < state->paddle_x + HALF_PADDLE_WIDTH &&
       state->ball_vy > 0.0f) {
-    *reward += 1.0f;
     state->ball_y = PADDLE_Y - HALF_PADDLE_HEIGHT;
     state->ball_vy = -state->ball_vy;
     float ball2paddle = state->ball_x - state->paddle_x;

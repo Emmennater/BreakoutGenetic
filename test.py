@@ -99,8 +99,8 @@ def test():
     # if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
     #   action += 1
     # done = link.step(state, action)
-
     done = link.stepGenome(state)
+
     render(state, screen, screen_width, screen_height)
     if done: state = get_state()
     
