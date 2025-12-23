@@ -1,29 +1,32 @@
 #pragma once
 #include <bitset>
+#include <vector>
 using namespace std;
 
-class Environment {
-  static const int BRICK_ROWS = 7;
-  static const int BRICK_COLUMNS = 10;
-  static constexpr float PADDLE_SPEED = 0.01f;
-  static constexpr float BALL_SPEED = 0.01f;
-  static constexpr float HALF_PADDLE_WIDTH = 0.075f;
-  static constexpr float HALF_PADDLE_HEIGHT = 0.01f;
-  static constexpr float PADDLE_Y = 0.95f;
-  static constexpr float BALL_RADIUS = 0.015f;
-  static constexpr float BRICK_TOP = 0.1f;
-  static constexpr float BRICK_BOTTOM = 0.3f;
+namespace EnvConfig {
+  constexpr int BRICK_ROWS = 7;
+  constexpr int BRICK_COLUMNS = 10;
+  constexpr float PADDLE_SPEED = 0.01f;
+  constexpr float BALL_SPEED = 0.01f;
+  constexpr float HALF_PADDLE_WIDTH = 0.075f;
+  constexpr float HALF_PADDLE_HEIGHT = 0.01f;
+  constexpr float PADDLE_Y = 0.95f;
+  constexpr float BALL_RADIUS = 0.015f;
+  constexpr float BRICK_TOP = 0.1f;
+  constexpr float BRICK_BOTTOM = 0.3f;
+  constexpr int STATE_SIZE = 5;
+  constexpr int ACTION_SIZE = 3;
+}
 
-public:
-  struct State {
-    float paddle_x;
-    float ball_x;
-    float ball_y;
-    float ball_vx;
-    float ball_vy;
-    bitset<BRICK_ROWS * BRICK_COLUMNS> bricks;
-  };
+using namespace EnvConfig;
 
-  int pos2idx(float, float);
-  void step(State*, int, float*, bool*, float);
+struct State {
+  float paddle_x = 0.5;
+  float ball_x = 0.5;
+  float ball_y = 0.5;
+  float ball_vx = 0.0;
+  float ball_vy = BALL_SPEED;
+  bitset<BRICK_ROWS * BRICK_COLUMNS> bricks = bitset<BRICK_ROWS * BRICK_COLUMNS>().set();
 };
+
+void envStep(State* state, int* action, float* reward, int* done, float rng);
