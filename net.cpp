@@ -2,11 +2,9 @@
 #include <fstream>
 #include <iostream>
 
-Genome::Genome() : data(H * I + H + H * H + H + O * H + O) {}
+Genome::Genome() : data(I + H * I + H + H * H + H + O * H + O) {}
 
 void Genome::init(mt19937& rng) {
-  data.resize(H * I + H + H * H + H + O * H + O);
-
   uniform_real_distribution<float> dist(-1.0f, 1.0f);
 
   for (size_t i = 0; i < data.size(); i++) {
@@ -15,11 +13,13 @@ void Genome::init(mt19937& rng) {
 }
 
 void mutate(Genome& g, mt19937& rng, float rate, float delta) {
-  uniform_real_distribution<float> dist_delta(-delta, delta);
+  normal_distribution<float> dist_delta(0.0f, delta);
   uniform_real_distribution<float> dist_rate(0.0f, 1.0f);
 
   for (size_t i = 0; i < g.data.size(); i++) {
     g.data[i] += (dist_rate(rng) < rate) * dist_delta(rng);
+    if (g.data[i] > 1.0f) g.data[i] = 1.0f;
+    if (g.data[i] < -1.0f) g.data[i] = -1.0f;
   }
 }
 
@@ -46,6 +46,11 @@ Eigen::Matrix<float, I, 1> cast(const State& s) {
 
 int forward(const Genome& g, const State& s) {
   const Eigen::Matrix<float, I, 1>& x = cast(s);
+  const float* p = g.data.data();
+
+  // Create mask of active inputs
+  Eigen::Matrix<float, I, 1> mask = Eigen::Map<const Eigen::Matrix<float, I, 1>>(p); p += I;
+  Eigen::Matrix<float, I, 1> x_masked = x.cwiseProduct((mask.array() > 0.0f).cast<float>().matrix());
 
   using MatInput  = Eigen::Matrix<float, H, I>;
   using VecH      = Eigen::Matrix<float, H, 1>;
@@ -54,7 +59,6 @@ int forward(const Genome& g, const State& s) {
   using VecO      = Eigen::Matrix<float, O, 1>;
 
   // Extract weights and biases from the flattened genome
-  const float* p = g.data.data();
   Eigen::Map<const MatInput>  W1(p); p += H * I;
   Eigen::Map<const VecH>      b1(p); p += H;
   Eigen::Map<const MatHidden> W2(p); p += H * H;
@@ -63,7 +67,7 @@ int forward(const Genome& g, const State& s) {
   Eigen::Map<const VecO>      b3(p);
 
   // Forward
-  VecH h1 = W1 * x + b1;
+  VecH h1 = W1 * x_masked + b1;
   h1 = h1.array().tanh();
   VecH h2 = W2 * h1 + b2;
   h2 = h2.array().tanh();

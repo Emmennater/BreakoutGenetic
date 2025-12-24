@@ -1,9 +1,18 @@
+import random
+import sys
 import link
 import numpy as np
 import pygame
 
 def get_state():
   state = np.zeros((5 + 7 * 10), dtype=np.float32)
+  # ball_angle = random.uniform(np.pi * 0.25, np.pi * 0.25)
+  # ball_speed = 0.01
+  # state[0] = 0.5
+  # state[1] = random.uniform(0.4, 0.5)
+  # state[2] = random.uniform(0.2, 0.8)
+  # state[3] = np.cos(ball_angle) * ball_speed
+  # state[4] = np.sin(ball_angle) * ball_speed
   state[0] = 0.5
   state[1] = 0.5
   state[2] = 0.5
@@ -70,10 +79,11 @@ def render(state: np.ndarray, screen: pygame.Surface, screen_width, screen_heigh
   ball_r = BALL_RADIUS * screen_height
   pygame.draw.circle(screen, BALL_COLOR, (ball_x, ball_y), ball_r)
 
-def test():
+def test(ai=False):
   state = get_state()
   
   link.load("genomes/0.net")
+  # link.load("best_models/best.net")
   
   pygame.init()
   screen_width, screen_height = 600, 700
@@ -81,6 +91,9 @@ def test():
   clock = pygame.time.Clock()
   running = True
   keys_down = {}
+  frame = 0
+  total_reward = 0
+  reward = np.zeros(1, dtype=np.float32)
 
   while running:
     clock.tick(60)
@@ -93,20 +106,39 @@ def test():
       if event.type == pygame.KEYUP:
         keys_down[event.key] = False
 
-    # action = 1
-    # if pygame.K_LEFT in keys_down and keys_down[pygame.K_LEFT]:
-    #   action -= 1
-    # if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
-    #   action += 1
-    # done = link.step(state, action)
-    done = link.stepGenome(state)
+    if ai:
+      done = link.stepGenome(state, reward)
+      total_reward += reward[0]
+      reward[0] = 0
+    else:
+      action = 1
+      if pygame.K_LEFT in keys_down and keys_down[pygame.K_LEFT]:
+        action -= 1
+      if pygame.K_RIGHT in keys_down and keys_down[pygame.K_RIGHT]:
+        action += 1
+      done = link.step(state, action)
 
     render(state, screen, screen_width, screen_height)
-    if done: state = get_state()
+    frame += 1
     
+    txt = "Frame: %d" % frame
+    font = pygame.font.Font(None, 24)
+    text = font.render(txt, True, (255, 255, 255))
+    screen.blit(text, (10, 10))
+
+    txt = "Reward: %.0f" % total_reward
+    font = pygame.font.Font(None, 24)
+    text = font.render(txt, True, (255, 255, 255))
+    screen.blit(text, (10, 40))
+
+    if done:
+      state = get_state()
+      frame = 0
+      total_reward = 0
+
     pygame.display.flip()
 
   pygame.quit()
 
 if __name__ == "__main__":
-  test()
+  test('--play' not in sys.argv)

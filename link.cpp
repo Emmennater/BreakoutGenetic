@@ -16,18 +16,18 @@ void load(const std::string& filename) {
   loaded = true;
 }
 
-int stepGenome(py::array_t<float> state) {
+int stepGenome(py::array_t<float> state, py::array_t<float> reward) {
   if (!loaded) return 1;
 
   float random = dist(rng);
   auto state_mut = state.mutable_data();
-  float reward = 0;
+  auto reward_mut = reward.mutable_data();
   int done = 0;
   State s;
   
   memcpy(&s, state_mut, sizeof(State));
   int action = forward(g, s);
-  envStep(&s, &action, &reward, &done, random);
+  envStep(&s, &action, &reward_mut[0], &done, random);
   memcpy(state_mut, &s, sizeof(State));
 
   return done;

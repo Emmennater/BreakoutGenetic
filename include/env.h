@@ -14,7 +14,7 @@ namespace EnvConfig {
   constexpr float BALL_RADIUS = 0.015f;
   constexpr float BRICK_TOP = 0.1f;
   constexpr float BRICK_BOTTOM = 0.3f;
-  constexpr int STATE_SIZE = 5;
+  constexpr int STATE_SIZE = 5 + BRICK_ROWS * BRICK_COLUMNS;
   constexpr int ACTION_SIZE = 3;
 }
 

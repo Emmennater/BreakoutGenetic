@@ -4,7 +4,7 @@
 #include <env.h>
 
 constexpr int I = STATE_SIZE;
-constexpr int H = 16;
+constexpr int H = 8;
 constexpr int O = ACTION_SIZE;
 
 struct Genome {

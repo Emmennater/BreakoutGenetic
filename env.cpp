@@ -46,6 +46,7 @@ void envStep(State* state, int* action, float* reward, int* done, float random) 
       state->ball_x + BALL_RADIUS > state->paddle_x - HALF_PADDLE_WIDTH &&
       state->ball_x - BALL_RADIUS < state->paddle_x + HALF_PADDLE_WIDTH &&
       state->ball_vy > 0.0f) {
+    // *reward += 1.0f;
     state->ball_y = PADDLE_Y - HALF_PADDLE_HEIGHT;
     state->ball_vy = -state->ball_vy;
     float ball2paddle = state->ball_x - state->paddle_x;
@@ -65,22 +66,55 @@ void envStep(State* state, int* action, float* reward, int* done, float random) 
   int brick_tl = pos2idx(ball_t, ball_l);
   int brick_br = pos2idx(ball_b, ball_r);
   int brick_bl = pos2idx(ball_b, ball_l);
+  int brick_idx = -1;
 
   if (brick_tr != -1 && state->bricks[brick_tr]) {
-    state->bricks[brick_tr] = 0;
-    state->ball_vy = -state->ball_vy;
-    *reward += 1.0f;
+    brick_idx = brick_tr;
   } else if (brick_tl != -1 && state->bricks[brick_tl]) {
-    state->bricks[brick_tl] = 0;
-    state->ball_vy = -state->ball_vy;
-    *reward += 1.0f;
+    brick_idx = brick_tl;
   } else if (brick_br != -1 && state->bricks[brick_br]) {
-    state->bricks[brick_br] = 0;
-    state->ball_vy = -state->ball_vy;
-    *reward += 1.0f;
+    brick_idx = brick_br;
   } else if (brick_bl != -1 && state->bricks[brick_bl]) {
-    state->bricks[brick_bl] = 0;
+    brick_idx = brick_bl;
+  }
+
+  if (brick_idx != -1) {
+    // int col = brick_idx % BRICK_COLUMNS;
+    // int row = brick_idx / BRICK_COLUMNS;
+    
+    // float w1 = state->ball_vx;
+    // float h1 = state->ball_vy;
+    // float w2 = 1.0f / BRICK_COLUMNS;
+    // float h2 = (BRICK_BOTTOM - BRICK_TOP) / BRICK_ROWS;
+    // float x0 = state->ball_x - state->ball_vx;
+    // float y0 = state->ball_y - state->ball_vy;
+    // float x1 = state->ball_x;
+    // float y1 = state->ball_y;
+    // float x2 = col * w2 + w2 * 0.5f;
+    // float y2 = BRICK_TOP + row * h2 + h2 * 0.5f;
+    
+    // float xmin = x2 - w2/2 - w1/2;
+    // float xmax = x2 + w2/2 - w1/2;
+    // float ymin = y2 - h2/2 - h1/2;
+    // float ymax = y2 + h2/2 + h1/2;
+    // float dx = x1 - x0;
+    // float dy = y1 - y0;
+    // float tx1 = (xmin - x0) / dx;
+    // float tx2 = (xmax - x0) / dx;
+    // float ty1 = (ymin - y0) / dy;
+    // float ty2 = (ymax - y0) / dy;
+    // float txmin = min(tx1, tx2);
+    // float tymin = min(ty1, ty2);
+    
+    // if (txmin > tymin) {
+    //   state->ball_vx = -state->ball_vx;
+    // } else {
+    //   state->ball_vy = -state->ball_vy;
+    // }
+
     state->ball_vy = -state->ball_vy;
+    state->bricks[brick_idx] = 0;
     *reward += 1.0f;
+    // *reward += BRICK_ROWS - row;
   }
 }
